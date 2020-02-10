@@ -1,5 +1,6 @@
 import math
 import sys
+import copy
 
 EPSILON = sys.float_info.epsilon
 
@@ -79,4 +80,42 @@ Replace the implementation of computeHull with a correct computation of the conv
 using the divide-and-conquer algorithm
 '''
 def computeHull(points):
+	#if(len(points) <= 3):
+		#clockwiseSort(points)
+		#return points
+	if(len(points) <= 6):
+		connections = naiveImplementation(points)
+		return connections
+
+	leftMost = min(points)
+	rightMost = max(points)
+	#divide(points)
+	
 	return points
+
+
+def naiveImplementation(points):
+	leftMost = min(points)
+	rightMost = max(points)
+	connections = []
+	pointsCpy = copy.deepcopy(points)
+
+	clockwiseSort(pointsCpy)
+
+	for point in range(len(pointsCpy) - 2):
+		if triangleArea(pointsCpy[point], pointsCpy[point+1], pointsCpy[point+2]) > 0:
+			connections.append(pointsCpy[point])
+			connections.append(pointsCpy[point+2])
+		if triangleArea(pointsCpy[point], pointsCpy[point+1], pointsCpy[point+2]) < 0:
+			connections.append(pointsCpy[point])
+			connections.append(pointsCpy[point+1])
+			connections.append(pointsCpy[point+2])
+	clockwiseSort(connections)
+	return connections
+
+	
+		
+	
+
+
+	

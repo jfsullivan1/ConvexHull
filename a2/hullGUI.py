@@ -17,6 +17,7 @@ def drawPoint(canvas,x,y):
 	# r = 4
 	# id = canvas.create_oval(x-r,y-r,x+r,y+r)
 	id = canvas.create_image((x,y),image=ram,state=NORMAL)
+	print(x, y)
 	return id
 
 def showPoints(event):
