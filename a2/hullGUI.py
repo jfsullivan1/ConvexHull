@@ -17,7 +17,6 @@ def drawPoint(canvas,x,y):
 	# r = 4
 	# id = canvas.create_oval(x-r,y-r,x+r,y+r)
 	id = canvas.create_image((x,y),image=ram,state=NORMAL)
-	print(x, y)
 	return id
 
 def showPoints(event):
@@ -48,7 +47,12 @@ w = Canvas(master,
            width=canvas_width,
            height=canvas_height)
 ram = PhotoImage(file="ram-sm.gif")
+
+#Hard-coded input test
+for i in range(300, 600):
+	points.append((400, i))
+	drawPoint(w, 400, i)
+
 w.pack()
 w.bind('<Button-1>', addPoint)
-
 w.mainloop()

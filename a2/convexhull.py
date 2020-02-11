@@ -1,8 +1,11 @@
 import math
 import sys
 import copy
-
+from hypothesis import given
+import hypothesis.strategies as st
 EPSILON = sys.float_info.epsilon
+
+@given(st.lists(st.tuples(st.integers(0,1000000), st.integers(0,1000000))), 3, None, None, True)
 
 
 def yint(p1, p2, x, y3, y4):
@@ -76,7 +79,10 @@ def computeHull(points):
 	the convex hull using the divide-and-conquer algorithm
 	"""
 	newpoints = copy.deepcopy(points)
+	#if (len(newpoints) <= 6):
 	naiveHull(newpoints)
+	#else:
+		#divAndConquer(newpoints)
 	return newpoints
 
 
@@ -102,12 +108,23 @@ def naiveHull(points):
 			triangle_area = triangleArea(points[i], points[(i + 1) % pointslength],
 										 points[(i + 2) % pointslength])
 			# If triangle area is negative, remove the middle point
-			if triangle_area < 0:
-				points.pop((i + 1) % pointslength)
-				pointslength -= 1
-				count += 1
-				notAllConvexAngles = True
+
+			# If we have a line of points, we will skip it because
+			# we know it's part of the hull
+			isCollinear = collinear(points[i], points[(i+1) % pointslength],
+							points[(i+2) % pointslength])
+			
+			# We don't have to execute this conditional if it's collinear. 
+			if not isCollinear:
+				if triangle_area <= 0:
+					points.pop((i + 1) % pointslength)
+					pointslength -= 1
+					count += 1
+					notAllConvexAngles = True
 			i += 1
 		if count == 0:
 			notAllConvexAngles = False
 	return points
+
+
+#def divAndConquer(points):
