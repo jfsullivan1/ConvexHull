@@ -49,9 +49,9 @@ w = Canvas(master,
 ram = PhotoImage(file="ram-sm.gif")
 
 #Hard-coded input test
-for i in range(300, 600):
-	points.append((400, i))
-	drawPoint(w, 400, i)
+#for i in range(300, 600):
+	#points.append((400, i))
+	#drawPoint(w, 400, i)
 
 w.pack()
 w.bind('<Button-1>', addPoint)

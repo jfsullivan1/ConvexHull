@@ -5,9 +5,6 @@ from hypothesis import given
 import hypothesis.strategies as st
 EPSILON = sys.float_info.epsilon
 
-@given(st.lists(st.tuples(st.integers(0,1000000), st.integers(0,1000000))), 3, None, None, True)
-
-
 def yint(p1, p2, x, y3, y4):
 	"""
 	Given two points, p1 and p2, an x coordinate, x, and y coordinates y3 and
@@ -79,11 +76,13 @@ def computeHull(points):
 	the convex hull using the divide-and-conquer algorithm
 	"""
 	newpoints = copy.deepcopy(points)
-	#if (len(newpoints) <= 6):
-	naiveHull(newpoints)
-	#else:
-		#divAndConquer(newpoints)
-	return newpoints
+	if (len(newpoints) <= 6):
+		return naiveHull(newpoints)
+	else:
+		newpointsLeft, newpointsRight = splitPoints(newpoints)
+		hullOne = computeHull(newpointsLeft)
+		hullTwo = computeHull(newpointsRight)
+		return merge(hullOne, hullTwo)
 
 
 def naiveHull(points):
@@ -127,4 +126,37 @@ def naiveHull(points):
 	return points
 
 
-#def divAndConquer(points):
+def sortByX(points):
+	points.sort()
+
+def splitPoints(points):
+	lengthOfList = len(points)
+	leftHalf = points[0:(lengthOfList//2)]
+	rightHalf = points[(lengthOfList//2)::]
+	return leftHalf, rightHalf
+
+def merge(hullOne, hullTwo):
+	leftHull = copy.deepcopy(hullOne)
+	rightHull = copy.deepcopy(hullTwo)
+
+	#Sort so we can find the leftmost and rightmost points
+	leftHull.sort()
+	rightHull.sort()
+
+	#Find the leftmost and rightmost points 
+	rightMostLeftHull = leftHull[-1]
+	leftMostRightHull = rightHull[0]
+
+	i = rightMostLeftHull
+	j = leftMostRightHull
+ 
+	# Finds the x value where the two hulls will be split in half (for finding y-intercepts)
+	yAxis = (i[0] + j[0]) / 2
+
+	while(yint(i, j+1, yAxis) > yint(i, j, yAxis) or yint(i-1, j, yAxis) > yint(i, j, yAxis)):
+		if yint(i, j+1, yAxis) > yint(i,j, yAxis):
+			j = j+1 % len(rightHull)
+		else:
+			i = i-1 % len(leftHull)
+
+	
