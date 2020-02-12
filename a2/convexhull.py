@@ -178,38 +178,38 @@ def merge(hullOne, hullTwo):
 
 	# Seesaw algorithm (Two-finger) 
 	# Upper tangent, i->j will be the upper tangent at the end of this loop. 
-	while(yint(i, j+1 % len(rightHull), yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1] or yint(i-1 % len(leftHull), j, yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1]):
-		if yint(i, j+1 % len(rightHull), yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1]:
-			j = j+1 % len(rightHull)
-		else:
-			i = i-1 % len(leftHull)
-
+	while(yint(i, rightHull[(rightHull.index(j)+1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1] or
+		yint(leftHull[(leftHull.index(i)-1) % len(leftHull)], j, yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1]):
+			if yint(i, rightHull[(rightHull.index(j)+1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1]:
+				j = rightHull[(rightHull.index(j)+1) % len(rightHull)]
+			else:
+				i = leftHull[(leftHull.index(i)-1) % len(leftHull)]
 
 	x = rightMostLeftHull
 	y = leftMostRightHull
 	# Lower tangent. 
-	while(yint(x+1 % len(leftHull), y, yAxis, minY, maxY)[1] > yint(leftHull[x[0]], rightHull[y[0]], yAxis, minY, maxY)[1] or
-        yint(leftHull[x[0]], rightHull[y-1 % len(rightHull)], yAxis, minY, maxY)[1] > yint(leftHull[x[0]], rightHull[y[0]], yAxis, minY, maxY)[1]):
-            if yint(leftHull[x+1 % len(leftHull)], rightHull[y[0]], yAxis, minY , maxY)[1] > yint(leftHull[x[0]], rightHull[y[0]], yAxis, minY, maxY)[1]:
-                x = leftHull[x+1 % len(leftHull)]
+	while(yint(leftHull[(leftHull.index(x)+1) % len(leftHull)], y, yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1] or
+        yint(x, rightHull[(rightHull.index(y)-1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]):
+            if yint(leftHull[(leftHull.index(x)+1) % len(leftHull)], y, yAxis, minY , maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]:
+                x = leftHull[(leftHull.index(x)+1) % len(leftHull)]
             else:
-                y = rightHull[y-1 % len(rightHull)]
+                y = rightHull[(rightHull.index(y)-1) % len(rightHull)]
 	
 
 	mergedList = []
 	notInHull = []
 
 	# Remove points not in left half
-	iterator = leftHull[(i+1) % len(leftHull)]
+	iterator = leftHull[(leftHull.index(i) + 1) % len(leftHull)]
 	while iterator != x:
-		notInHull.append(leftHull[iterator])
-		iterator = leftHull[(iterator + 1) % len(leftHull)]
+		notInHull.append(iterator)
+		iterator = leftHull[(leftHull.index(iterator) + 1) % len(leftHull)]
 	
 
-	iterator = rightHull[(y+1) % len(rightHull)]
+	iterator = rightHull[(rightHull.index(y)+1) % len(rightHull)]
 	while iterator != j:
-		notInHull.append(rightHull[iterator])
-		iterator = rightHull[(iterator + 1) % len(rightHull)]
+		notInHull.append(iterator)
+		iterator = rightHull[(rightHull.index(iterator) + 1) % len(rightHull)]
 
 	newHull = leftHull + rightHull
 	for i in newHull:
