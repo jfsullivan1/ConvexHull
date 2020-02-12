@@ -73,8 +73,7 @@ def clockwiseSort(points):
 
 def computeHull(points):
 	"""
-	Replace the implementation of computeHull with a correct computation of
-	the convex hull using the divide-and-conquer algorithm
+	Computation of the convex hull with a divide-and-conquer algorithm
 	"""
 	newpoints = copy.deepcopy(points)
 	if (len(newpoints) <= 6):
@@ -139,6 +138,8 @@ def merge(hullOne, hullTwo):
 	leftHull = copy.deepcopy(hullOne)
 	rightHull = copy.deepcopy(hullTwo)
 
+	leftCopyForComputation = copy.deepcopy(hullOne)
+	rightCopyForComputation = copy.deepcopy(hullTwo)
 	#Sort so we can find the leftmost and rightmost points
 	leftHull.sort()
 	rightHull.sort()
@@ -161,15 +162,8 @@ def merge(hullOne, hullTwo):
 	# Technically, we could just have arbitrary large Y values, but we want to be exact for big input sizes.
 	minY = 0
 	maxY = 0
-	minYLeft = sortedByYValueLeftHull[0][1]
 	maxYLeft = sortedByYValueLeftHull[-1][1]
-	minYRight = sortedByYValueRightHull[0][1]
 	maxYRight = sortedByYValueRightHull[-1][1]
-
-	if minYLeft <= minYRight:
-		minY = minYLeft
-	else:
-		minY = minYRight
 
 	if maxYLeft >= maxYRight:
 		maxY = maxYLeft
@@ -187,6 +181,7 @@ def merge(hullOne, hullTwo):
 
 	x = copy.deepcopy(rightMostLeftHull)
 	y = copy.deepcopy(leftMostRightHull)
+
 	# Lower tangent. 
 	while(yint(leftHull[(leftHull.index(x)+1) % len(leftHull)], y, yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1] or
         yint(x, rightHull[(rightHull.index(y)-1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]):
