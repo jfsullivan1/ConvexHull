@@ -1,6 +1,7 @@
 import math
 import sys
 import copy
+import operator
 from hypothesis import given
 import hypothesis.strategies as st
 EPSILON = sys.float_info.epsilon
@@ -84,7 +85,6 @@ def computeHull(points):
 		hullTwo = computeHull(newpointsRight)
 		return merge(hullOne, hullTwo)
 
-
 def naiveHull(points):
 	"""
 	Brute force Convex Hull solve
@@ -147,16 +147,74 @@ def merge(hullOne, hullTwo):
 	rightMostLeftHull = leftHull[-1]
 	leftMostRightHull = rightHull[0]
 
-	i = rightMostLeftHull
-	j = leftMostRightHull
+	# These are deepcopied so I can reuse them for both tangents later. 
+	i = copy.deepcopy(rightMostLeftHull)
+	j = copy.deepcopy(leftMostRightHull)
  
 	# Finds the x value where the two hulls will be split in half (for finding y-intercepts)
 	yAxis = (i[0] + j[0]) / 2
 
-	while(yint(i, j+1, yAxis) > yint(i, j, yAxis) or yint(i-1, j, yAxis) > yint(i, j, yAxis)):
-		if yint(i, j+1, yAxis) > yint(i,j, yAxis):
+	sortedByYValueLeftHull = sorted(leftHull, key=lambda item: (-item[0], item[1]))
+	sortedByYValueRightHull = sorted(rightHull, key=lambda item: (-item[0], item[1]))
+
+	# We want to find the max and min Y values so we know how long our "Y axis" is. 
+	# Technically, we could just have arbitrary large Y values, but we want to be exact for big input sizes.
+	minY = 0
+	maxY = 0
+	minYLeft = sortedByYValueLeftHull[0][1]
+	maxYLeft = sortedByYValueLeftHull[-1][1]
+	minYRight = sortedByYValueRightHull[0][1]
+	maxYRight = sortedByYValueRightHull[-1][1]
+
+	if minYLeft <= minYRight:
+		minY = minYLeft
+	else:
+		minY = minYRight
+
+	if maxYLeft >= maxYRight:
+		maxY = maxYLeft
+	else:
+		maxY = maxYRight
+
+	# Seesaw algorithm (Two-finger) 
+	# Upper tangent, i->j will be the upper tangent at the end of this loop. 
+	while(yint(i, j+1 % len(rightHull), yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1] or yint(i-1 % len(leftHull), j, yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1]):
+		if yint(i, j+1 % len(rightHull), yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1]:
 			j = j+1 % len(rightHull)
 		else:
 			i = i-1 % len(leftHull)
 
+
+	x = rightMostLeftHull
+	y = leftMostRightHull
+	# Lower tangent. 
+	while(yint(x+1 % len(leftHull), y, yAxis, minY, maxY)[1] > yint(leftHull[x[0]], rightHull[y[0]], yAxis, minY, maxY)[1] or
+        yint(leftHull[x[0]], rightHull[y-1 % len(rightHull)], yAxis, minY, maxY)[1] > yint(leftHull[x[0]], rightHull[y[0]], yAxis, minY, maxY)[1]):
+            if yint(leftHull[x+1 % len(leftHull)], rightHull[y[0]], yAxis, minY , maxY)[1] > yint(leftHull[x[0]], rightHull[y[0]], yAxis, minY, maxY)[1]:
+                x = leftHull[x+1 % len(leftHull)]
+            else:
+                y = rightHull[y-1 % len(rightHull)]
 	
+
+	mergedList = []
+	notInHull = []
+
+	# Remove points not in left half
+	iterator = leftHull[(i+1) % len(leftHull)]
+	while iterator != x:
+		notInHull.append(leftHull[iterator])
+		iterator = leftHull[(iterator + 1) % len(leftHull)]
+	
+
+	iterator = rightHull[(y+1) % len(rightHull)]
+	while iterator != j:
+		notInHull.append(rightHull[iterator])
+		iterator = rightHull[(iterator + 1) % len(rightHull)]
+
+	newHull = leftHull + rightHull
+	for i in newHull:
+		if i not in notInHull:
+			mergedList.append(i)
+	
+	clockwiseSort(mergedList)
+	return mergedList
