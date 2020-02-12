@@ -185,8 +185,8 @@ def merge(hullOne, hullTwo):
 			else:
 				i = leftHull[(leftHull.index(i)-1) % len(leftHull)]
 
-	x = rightMostLeftHull
-	y = leftMostRightHull
+	x = copy.deepcopy(rightMostLeftHull)
+	y = copy.deepcopy(leftMostRightHull)
 	# Lower tangent. 
 	while(yint(leftHull[(leftHull.index(x)+1) % len(leftHull)], y, yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1] or
         yint(x, rightHull[(rightHull.index(y)-1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]):
