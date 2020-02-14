@@ -129,67 +129,93 @@ def sortByX(points):
 	points.sort()
 
 def splitPoints(points):
+	sortByX(points)
 	lengthOfList = len(points)
 	leftHalf = points[0:(lengthOfList//2)]
 	rightHalf = points[(lengthOfList//2)::]
 	return leftHalf, rightHalf
 
 def merge(hullOne, hullTwo):
-	leftHull = copy.deepcopy(hullOne)
-	rightHull = copy.deepcopy(hullTwo)
+	leftHull = hullOne
+	rightHull = hullTwo
 
-	leftCopyForComputation = copy.deepcopy(hullOne)
-	rightCopyForComputation = copy.deepcopy(hullTwo)
+	leftHullForComputations = copy.deepcopy(leftHull)
+	rightHullForComputations = copy.deepcopy(rightHull)
 	#Sort so we can find the leftmost and rightmost points
-	leftHull.sort()
-	rightHull.sort()
+	sortByX(leftHullForComputations)
+	sortByX(rightHullForComputations)
 
+	
 	#Find the leftmost and rightmost points 
-	rightMostLeftHull = leftHull[-1]
-	leftMostRightHull = rightHull[0]
+	rightMostLeftHull = leftHullForComputations[-1]
+	leftMostRightHull = rightHullForComputations[0]
 
-	# These are deepcopied so I can reuse them for both tangents later. 
-	i = copy.deepcopy(rightMostLeftHull)
-	j = copy.deepcopy(leftMostRightHull)
- 
-	# Finds the x value where the two hulls will be split in half (for finding y-intercepts)
-	yAxis = (i[0] + j[0]) / 2
+	i = rightMostLeftHull
+	j = leftMostRightHull
 
-	sortedByYValueLeftHull = sorted(leftHull, key=lambda item: (-item[0], item[1]))
-	sortedByYValueRightHull = sorted(rightHull, key=lambda item: (-item[0], item[1]))
+	# Finds the x value where we will draw a line down the middle for finding y-intercepts
+	yAxis = (i[0] + j[0]) // 2
 
 	# We want to find the max and min Y values so we know how long our "Y axis" is. 
 	# Technically, we could just have arbitrary large Y values, but we want to be exact for big input sizes.
 	minY = 0
 	maxY = 0
-	maxYLeft = sortedByYValueLeftHull[-1][1]
-	maxYRight = sortedByYValueRightHull[-1][1]
+	fullHull = leftHull + rightHull
 
-	if maxYLeft >= maxYRight:
-		maxY = maxYLeft
-	else:
-		maxY = maxYRight
+	for xPoint in range(len(fullHull)):
+		if fullHull[xPoint][1] > maxY:
+			maxY = fullHull[xPoint][1]
 
-	# Seesaw algorithm (Two-finger) 
-	# Upper tangent, i->j will be the upper tangent at the end of this loop. 
-	while(yint(i, rightHull[(rightHull.index(j)+1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1] or
-		yint(leftHull[(leftHull.index(i)-1) % len(leftHull)], j, yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1]):
-			if yint(i, rightHull[(rightHull.index(j)+1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(i, j, yAxis, minY, maxY)[1]:
+	#Upper tangent
+	upperTanFound = False
+	pointSwitched = False
+	while upperTanFound == False:	
+		pointSwitched = False	
+		try:
+			if yint(i, rightHull[(rightHull.index(j)+1) % len(rightHull)], yAxis, minY, maxY)[1] < yint(i, j, yAxis, minY, maxY)[1]:
 				j = rightHull[(rightHull.index(j)+1) % len(rightHull)]
-			else:
+				pointSwitched = True
+		except(ZeroDivisionError):
+			j = rightHull[(rightHull.index(j)+1) % len(rightHull)]
+			pointSwitched = True
+			continue
+		try:
+			if yint(leftHull[(leftHull.index(i)-1) % len(leftHull)], j, yAxis, minY, maxY)[1] < yint(i, j, yAxis, minY, maxY)[1]:
 				i = leftHull[(leftHull.index(i)-1) % len(leftHull)]
+				pointSwitched = True
+		except(ZeroDivisionError):
+			i = leftHull[(leftHull.index(i)-1) % len(leftHull)]
+			pointSwitched = True
+			continue
+		if pointSwitched == False:
+			upperTanFound = True
 
-	x = copy.deepcopy(rightMostLeftHull)
-	y = copy.deepcopy(leftMostRightHull)
+	x = rightMostLeftHull
+	y = leftMostRightHull
 
 	# Lower tangent. 
-	while(yint(leftHull[(leftHull.index(x)+1) % len(leftHull)], y, yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1] or
-        yint(x, rightHull[(rightHull.index(y)-1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]):
-            if yint(leftHull[(leftHull.index(x)+1) % len(leftHull)], y, yAxis, minY , maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]:
-                x = leftHull[(leftHull.index(x)+1) % len(leftHull)]
-            else:
-                y = rightHull[(rightHull.index(y)-1) % len(rightHull)]
-	
+	lowerTanFound = False
+	pointSwitched = False
+	while lowerTanFound == False:	
+		pointSwitched = False	
+		try:
+			if yint(leftHull[(leftHull.index(x)+1) % len(leftHull)], y, yAxis, minY , maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]:
+				x = leftHull[(leftHull.index(x)+1) % len(leftHull)]
+				pointSwitched = True
+		except(ZeroDivisionError):
+			x = leftHull[(leftHull.index(x)+1) % len(leftHull)]
+			pointSwitched = True
+			continue
+		try:
+			if yint(x, rightHull[(rightHull.index(y)-1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]:
+				y = rightHull[(rightHull.index(y)-1) % len(rightHull)]
+				pointSwitched = True
+		except(ZeroDivisionError):
+			y = rightHull[(rightHull.index(y)-1) % len(rightHull)]
+			pointSwitched = True
+			continue
+		if pointSwitched == False:
+			lowerTanFound = True
 
 	mergedList = []
 	notInHull = []
@@ -200,7 +226,7 @@ def merge(hullOne, hullTwo):
 		notInHull.append(iterator)
 		iterator = leftHull[(leftHull.index(iterator) + 1) % len(leftHull)]
 	
-
+	# Remove points not in right half
 	iterator = rightHull[(rightHull.index(y)+1) % len(rightHull)]
 	while iterator != j:
 		notInHull.append(iterator)
