@@ -156,7 +156,8 @@ def merge(hullOne, hullTwo):
 	# Finds the x value where we will draw a line down the middle for finding y-intercepts
 	yAxis = (i[0] + j[0]) // 2
 
-	# We want to find the max and min Y values so we know how long our "Y axis" is. 
+	# We want to find the max and min Y values so we know how long our "Y axis" is.
+	# We can set our mininmum Y value to always be 0.  
 	# Technically, we could just have arbitrary large Y values, but we want to be exact for big input sizes.
 	minY = 0
 	maxY = 0
@@ -178,7 +179,7 @@ def merge(hullOne, hullTwo):
 		except(ZeroDivisionError):
 			j = rightHull[(rightHull.index(j)+1) % len(rightHull)]
 			pointSwitched = True
-			continue
+			break
 		try:
 			if yint(leftHull[(leftHull.index(i)-1) % len(leftHull)], j, yAxis, minY, maxY)[1] < yint(i, j, yAxis, minY, maxY)[1]:
 				i = leftHull[(leftHull.index(i)-1) % len(leftHull)]
@@ -186,7 +187,7 @@ def merge(hullOne, hullTwo):
 		except(ZeroDivisionError):
 			i = leftHull[(leftHull.index(i)-1) % len(leftHull)]
 			pointSwitched = True
-			continue
+			break
 		if pointSwitched == False:
 			upperTanFound = True
 
@@ -205,7 +206,7 @@ def merge(hullOne, hullTwo):
 		except(ZeroDivisionError):
 			x = leftHull[(leftHull.index(x)+1) % len(leftHull)]
 			pointSwitched = True
-			continue
+			break
 		try:
 			if yint(x, rightHull[(rightHull.index(y)-1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]:
 				y = rightHull[(rightHull.index(y)-1) % len(rightHull)]
@@ -213,7 +214,7 @@ def merge(hullOne, hullTwo):
 		except(ZeroDivisionError):
 			y = rightHull[(rightHull.index(y)-1) % len(rightHull)]
 			pointSwitched = True
-			continue
+			break
 		if pointSwitched == False:
 			lowerTanFound = True
 
