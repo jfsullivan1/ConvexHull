@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # if using python 2, swap the next two lines
 # from Tkinter import *
@@ -46,11 +47,11 @@ canvas_height = 800
 w = Canvas(master, 
            width=canvas_width,
            height=canvas_height)
-ram = PhotoImage(file="ram-sm.gif")
+#ram = PhotoImage(file="ram-sm.gif")
 
 #Hard-coded input test
 #for i in range(0, 300):
-	#if i % 20 == 0:
+	#if i % 10 == 0:
 		#points.append((400, i))
 		#drawPoint(w, 400, i)
 

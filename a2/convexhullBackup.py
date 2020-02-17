@@ -2,9 +2,8 @@ import math
 import sys
 import copy
 import operator
-from itertools import cycle, islice
-#from hypothesis import given
-#import hypothesis.strategies as st
+from hypothesis import given
+import hypothesis.strategies as st
 EPSILON = sys.float_info.epsilon
 
 def yint(p1, p2, x, y3, y4):
@@ -77,7 +76,7 @@ def computeHull(points):
 	Computation of the convex hull with a divide-and-conquer algorithm
 	"""
 	newpoints = copy.deepcopy(points)
-	if (len(newpoints) <= 12):
+	if (len(newpoints) <= 10):
 		return naiveHull(newpoints)
 	else:
 		newpointsLeft, newpointsRight = splitPoints(newpoints)
@@ -134,9 +133,6 @@ def splitPoints(points):
 	lengthOfList = len(points)
 	leftHalf = points[0:(lengthOfList//2)]
 	rightHalf = points[(lengthOfList//2)::]
-	#clockwiseSort(leftHalf)
-	#clockwiseSort(rightHalf)
-	
 	return leftHalf, rightHalf
 
 def merge(hullOne, hullTwo):
@@ -154,11 +150,26 @@ def merge(hullOne, hullTwo):
 	rightMostLeftHull = leftHullForComputations[-1]
 	leftMostRightHull = rightHullForComputations[0]
 
-	# i = rightMostLeftHull
-	# j = leftMostRightHull
+	i = rightMostLeftHull
+	j = leftMostRightHull
 
 	# Finds the x value where we will draw a line down the middle for finding y-intercepts
-	yAxis = (rightMostLeftHull[0] + leftMostRightHull[0]) // 2
+	ctr = 0
+	xSum = 0
+	avg = 0
+	full = leftHullForComputations + rightHullForComputations
+	sortByX(full)
+	for xVal in range(len(full)):
+		xSum += full[xVal][0]
+		ctr += 1
+	avg = xSum // ctr
+	
+	conflictList = []
+	for checkMid in range(len(full)):
+		if full[checkMid][0] == avg:
+			conflictList.append(full[checkMid])
+
+
 
 	# We want to find the max and min Y values so we know how long our "Y axis" is.
 	# We can set our mininmum Y value to always be 0.  
@@ -170,53 +181,76 @@ def merge(hullOne, hullTwo):
 	for xPoint in range(len(fullHull)):
 		if fullHull[xPoint][1] > maxY:
 			maxY = fullHull[xPoint][1]
-	
-	minYint = sys.maxsize
-	maxYint = 0
-	upperTangent = (leftHull[0], rightHull[0])
-	lowerTangent = (leftHull[0], rightHull[0])
 
-	# print(f"leftHull:  {leftHull}")
-	# print(f"rightHull:  {rightHull}")
-	clockwiseSort(leftHull)
-	clockwiseSort(rightHull)
-	# print(f"leftHullS: {leftHull}")
-	# print(f"rightHullS: {rightHull}")
+	#Upper tangent
+	upperTanFound = False
+	pointSwitched = False
+	while upperTanFound == False:	
+		pointSwitched = False	
+		try:
+			if yint(i, rightHull[(rightHull.index(j)+1) % len(rightHull)], avg, minY, maxY)[1] < yint(i, j, avg, minY, maxY)[1]:
+				j = rightHull[(rightHull.index(j)+1) % len(rightHull)]
+				pointSwitched = True
+		except(ZeroDivisionError):
+			j = rightHull[(rightHull.index(j)+1) % len(rightHull)]
+			pointSwitched = True
+			
+		try:
+			if yint(leftHull[(leftHull.index(i)-1) % len(leftHull)], j, avg, minY, maxY)[1] < yint(i, j, avg, minY, maxY)[1]:
+				i = leftHull[(leftHull.index(i)-1) % len(leftHull)]
+				pointSwitched = True
+		except(ZeroDivisionError):
+			i = leftHull[(leftHull.index(i)-1) % len(leftHull)]
+			pointSwitched = True
+			
+		if pointSwitched == False:
+			upperTanFound = True
 
-	# Compute the upper and lower tangents of the two hulls by brute force
-	for i in range(len(leftHull)):
-		for j in range(len(rightHull)):
-			try:
-				temp = yint(leftHull[i], rightHull[j], yAxis, minY, maxY)
-			except(ZeroDivisionError):
-				continue
-			if temp[1] < minYint:
-				minYint = temp[1]
-				upperTangent = [leftHull[i], rightHull[j]]
-				upperTangentIndex = (i, j)
-			if temp[1] > maxYint:
-				maxYint = temp[1]
-				lowerTangent = [leftHull[i], rightHull[j]]
-				lowerTangentIndex = (i, j)
-	
-	mergedHull = []
-	mergedHull.append(upperTangent[0])
-	i = upperTangentIndex[1]
-	while i != lowerTangentIndex[1]:
-		if i == len(rightHull):
-			i = 0
-		else:
-			mergedHull.append(rightHull[i])
-			i += 1
-	mergedHull.append(rightHull[i])
+	x = rightMostLeftHull
+	y = leftMostRightHull
 
-	i = lowerTangentIndex[0]
-	while i != upperTangentIndex[0]:
-		if i == len(leftHull):
-			i = 0
-		else:
-			mergedHull.append(leftHull[i])
-			i += 1
+	# Lower tangent. 
+	lowerTanFound = False
+	pointSwitched = False
+	while lowerTanFound == False:	
+		pointSwitched = False	
+		try:
+			if yint(leftHull[(leftHull.index(x)+1) % len(leftHull)], y, avg, minY , maxY)[1] > yint(x, y, avg, minY, maxY)[1]:
+				x = leftHull[(leftHull.index(x)+1) % len(leftHull)]
+				pointSwitched = True
+		except(ZeroDivisionError):
+			x = leftHull[(leftHull.index(x)+1) % len(leftHull)]
+			pointSwitched = True
+			
+		try:
+			if yint(x, rightHull[(rightHull.index(y)-1) % len(rightHull)], avg, minY, maxY)[1] > yint(x, y, avg, minY, maxY)[1]:
+				y = rightHull[(rightHull.index(y)-1) % len(rightHull)]
+				pointSwitched = True
+		except(ZeroDivisionError):
+			y = rightHull[(rightHull.index(y)-1) % len(rightHull)]
+			pointSwitched = True
+			
+		if pointSwitched == False:
+			lowerTanFound = True
+
+	mergedList = []
+	notInHull = []
+
+	# Remove points not in left half
+	iterator = leftHull[(leftHull.index(i) + 1) % len(leftHull)]
+	while iterator != x:
+		notInHull.append(iterator)
+		iterator = leftHull[(leftHull.index(iterator) + 1) % len(leftHull)]
 	
-	clockwiseSort(mergedHull)
-	return mergedHull
+	# Remove points not in right half
+	iterator = rightHull[(rightHull.index(y)+1) % len(rightHull)]
+	while iterator != j:
+		notInHull.append(iterator)
+		iterator = rightHull[(rightHull.index(iterator) + 1) % len(rightHull)]
+
+	newHull = leftHull + rightHull
+	for i in newHull:
+		if i not in notInHull:
+			mergedList.append(i)
+	clockwiseSort(mergedList)
+	return mergedList
