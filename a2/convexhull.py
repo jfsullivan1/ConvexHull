@@ -163,6 +163,10 @@ def splitPoints(points):
 
 def merge(hullOne, hullTwo):
 
+	# ===========================================================================================================
+	# Invariant - The left hull and right hull are always clockwise sorted separate convex hulls prior to merging
+	# ===========================================================================================================
+
 	leftHull = hullOne
 	rightHull = hullTwo
 
@@ -196,7 +200,12 @@ def merge(hullOne, hullTwo):
 		if fullHull[xPoint][1] > maxY:
 			maxY = fullHull[xPoint][1]
 
-	#Upper tangent
+	# Upper tangent
+	# ==========================================================================================================
+	# INVARIANT - the y-intercept (tangent) of i,j will always be "higher" (visually) on the plot of points than
+	# 	its last iteration in the loop. But mathematically, because of how the axis are arranged,
+	# 	the y-intercept VALUE of i,j will always be lower than it's last loop iteration. 
+	# ==========================================================================================================
 	upperTanFound = False
 	pointSwitched = False
 	while upperTanFound == False:	
@@ -224,6 +233,11 @@ def merge(hullOne, hullTwo):
 	y = leftMostRightHull
 
 	# Lower tangent. 
+	# ==========================================================================================================
+	# INVARIANT - the y-intercept (tangent) of x,y will always be "lower" (visually) on the plot of points than
+	# 	its last iteration in the loop. But mathematically, because of how the axis are arranged,
+	# 	the y-intercept VALUE of x,y will always be higher than it's last loop iteration. 
+	# ==========================================================================================================
 	lowerTanFound = False
 	pointSwitched = False
 	while lowerTanFound == False:	
@@ -272,14 +286,15 @@ def merge(hullOne, hullTwo):
 
 # This was for testing purposes, leaving it just in case TA's want to use it to benchmark 
 
-#if __name__ == "__main__":
-	#points = []
-	#for i in range(0, 120000):
-		#tup = ((random.randint(1,120000)), random.randint(1,120000))
-		#points.append(tup)
-	#stopwatch = time.time()
-	#naiveHull(points)
-	#sys.stderr.write(" ========== Benchmark Time NAIVE: %s sec. ==========\n" %(time.time() - stopwatch))
+if __name__ == "__main__":
+	points = []
+	for i in range(0, 1200000):
+		tup = ((random.randint(1,1200000)), random.randint(1,1200000))
+		points.append(tup)
+	stopwatch = time.time()
+	naiveHull(points)
+	sys.stderr.write(" ========== Benchmark Time NAIVE: %s sec. ==========\n" %(time.time() - stopwatch))
+
 	#stopwatch = time.time()
 	#computeHull(points)
 	#sys.stderr.write(" ========== Benchmark Time DIVIDE&CONQ: %s sec. ==========\n" %(time.time() - stopwatch))
