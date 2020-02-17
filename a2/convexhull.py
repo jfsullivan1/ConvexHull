@@ -152,6 +152,8 @@ def splitPoints(points):
 	lengthOfList = len(points)
 	leftHalf = []
 	rightHalf = []
+
+	# I split these up here so we won't get any divide by zero errors, although I kept try catches in my merge code just incase.
 	for i in range(0, lengthOfList):
 		if points[i][0] <= midLine:
 			leftHalf.append(points[i])
@@ -160,6 +162,7 @@ def splitPoints(points):
 	return leftHalf, rightHalf
 
 def merge(hullOne, hullTwo):
+
 	leftHull = hullOne
 	rightHull = hullTwo
 
@@ -267,34 +270,16 @@ def merge(hullOne, hullTwo):
 	clockwiseSort(mergedList)
 	return mergedList
 
+# This was for testing purposes, leaving it just in case TA's want to use it to benchmark 
 
-def checkHull(hull, points):
-	for i in range(0, len(hull) - 2):
-		j = i + 1
-		p = hull[i]
-		q = hull[j]
-		pos = 0
-		neg = 0
-		for r in points:
-			if r==p or r == q:
-				continue
-			if cw(p,q,r):
-				neg += 1
-			elif ccw(p,q,r):
-				pos += 1
-		if(pos == 0 or neg == 0):
-			return True
-		else:
-			return False
-
-if __name__ == "__main__":
-	points = []
-	for i in range(0, 120000):
-		tup = ((random.randint(1,120000)), random.randint(1,120000))
-		points.append(tup)
+#if __name__ == "__main__":
+	#points = []
+	#for i in range(0, 120000):
+		#tup = ((random.randint(1,120000)), random.randint(1,120000))
+		#points.append(tup)
 	#stopwatch = time.time()
 	#naiveHull(points)
 	#sys.stderr.write(" ========== Benchmark Time NAIVE: %s sec. ==========\n" %(time.time() - stopwatch))
-	stopwatch = time.time()
-	computeHull(points)
-	sys.stderr.write(" ========== Benchmark Time DIVIDE&CONQ: %s sec. ==========\n" %(time.time() - stopwatch))
+	#stopwatch = time.time()
+	#computeHull(points)
+	#sys.stderr.write(" ========== Benchmark Time DIVIDE&CONQ: %s sec. ==========\n" %(time.time() - stopwatch))
