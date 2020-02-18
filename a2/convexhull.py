@@ -92,10 +92,10 @@ def getHull(points):
 		return naiveHull(newpoints)
 	else:
 		newpointsLeft, newpointsRight = splitPoints(newpoints)
-		if not newpointsLeft:
+		if newpointsLeft == []:
 			clockwiseSort(newpointsRight)
 			return newpointsRight
-		if not newpointsRight:
+		if newpointsRight == []:
 			clockwiseSort(newpointsLeft)
 			return newpointsLeft
 		return merge(getHull(newpointsLeft), getHull(newpointsRight))
@@ -173,15 +173,22 @@ def merge(hullOne, hullTwo):
 	rightMostLeftHull = 0
 	leftMostRightHull = 0
 
-	# Find the index of the right most point on the left hull
-	for index in range(len(leftHull)):
-		if leftHull[index][0] > leftHull[rightMostLeftHull][0]:
-			rightMostLeftHull = index
+	# These deep copies are so I don't make modifications to the actual hulls. 
+	leftHullForComputation = copy.deepcopy(leftHull)
+	rightHullForComputation = copy.deepcopy(rightHull)
 
+	leftHullForComputation.sort()
+	rightHullForComputation.sort()
+
+	#left most right hull (point)
+	lmrh = rightHullForComputation[0]
+	#right most left hull (point)
+	rmlh = leftHullForComputation[-1]
+
+	# Find the index of the right most point on the left hull
+	rightMostLeftHull = leftHull.index(rmlh)
 	# Find the index of the left most point on the right hull
-	for index in range(len(rightHull)):
-		if rightHull[index][0] < rightHull[leftMostRightHull][0]:
-			leftMostRightHull = index	
+	leftMostRightHull = rightHull.index(lmrh)	
 	
 	i = rightMostLeftHull
 	j = leftMostRightHull
@@ -288,13 +295,13 @@ def merge(hullOne, hullTwo):
 
 if __name__ == "__main__":
 	points = []
-	for i in range(0, 1200000):
-		tup = ((random.randint(1,1200000)), random.randint(1,1200000))
+	for i in range(0, 10000):
+		tup = ((random.randint(1,10000)), random.randint(1,10000))
 		points.append(tup)
-	stopwatch = time.time()
-	naiveHull(points)
-	sys.stderr.write(" ========== Benchmark Time NAIVE: %s sec. ==========\n" %(time.time() - stopwatch))
-
 	#stopwatch = time.time()
-	#computeHull(points)
-	#sys.stderr.write(" ========== Benchmark Time DIVIDE&CONQ: %s sec. ==========\n" %(time.time() - stopwatch))
+	#naiveHull(points)
+	#sys.stderr.write(" ========== Benchmark Time NAIVE: %s sec. ==========\n" %(time.time() - stopwatch))
+
+	stopwatch = time.time()
+	hully = computeHull(points)
+	sys.stderr.write(" ========== Benchmark Time DIVIDE&CONQ: %s sec. ==========\n" %(time.time() - stopwatch))
