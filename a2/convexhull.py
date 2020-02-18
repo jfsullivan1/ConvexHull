@@ -2,9 +2,10 @@ import math
 import sys
 import copy
 import operator
-from hypothesis import given
-import hypothesis.strategies as st
+import random
+import time
 EPSILON = sys.float_info.epsilon
+
 
 def yint(p1, p2, x, y3, y4):
 	"""
@@ -75,14 +76,28 @@ def computeHull(points):
 	"""
 	Computation of the convex hull with a divide-and-conquer algorithm
 	"""
+	hull = getHull(points)
+	#print(checkHull(hull, points))
+	return hull
+	
+
+def getHull(points):
 	newpoints = copy.deepcopy(points)
-	if (len(newpoints) <= 6):
+	if (len(newpoints) <= 3):
+		clockwiseSort(newpoints)
+		return newpoints
+	if (len(newpoints) <= 9):
 		return naiveHull(newpoints)
 	else:
 		newpointsLeft, newpointsRight = splitPoints(newpoints)
-		hullOne = computeHull(newpointsLeft)
-		hullTwo = computeHull(newpointsRight)
-		return merge(hullOne, hullTwo)
+		if not newpointsLeft:
+			clockwiseSort(newpointsRight)
+			return newpointsRight
+		if not newpointsRight:
+			clockwiseSort(newpointsLeft)
+			return newpointsLeft
+		return merge(getHull(newpointsLeft), getHull(newpointsRight))
+
 
 def naiveHull(points):
 	"""
@@ -90,7 +105,6 @@ def naiveHull(points):
 	Given a list of points, return a list of points in clockwise order that
 	represents the convex hull of the points.
 	"""
-
 	clockwiseSort(points)
 	pointslength = len(points)
 
@@ -130,64 +144,86 @@ def sortByX(points):
 
 def splitPoints(points):
 	sortByX(points)
+	minX = points[0][0]
+	maxX = points[-1][0]
+	midLine = (minX + maxX) / 2
 	lengthOfList = len(points)
-	leftHalf = points[0:(lengthOfList//2)]
-	rightHalf = points[(lengthOfList//2)::]
+	leftHalf = []
+	rightHalf = []
+
+	# I split these up here so we won't get any divide by zero errors, although I kept try catches in my merge code just incase.
+	for i in range(0, lengthOfList):
+		if points[i][0] <= midLine:
+			leftHalf.append(points[i])
+		if points[i][0] > midLine:
+			rightHalf.append(points[i])
 	return leftHalf, rightHalf
 
 def merge(hullOne, hullTwo):
+
+	# ===========================================================================================================
+	# Invariant - The left hull and right hull are always clockwise sorted separate convex hulls prior to merging
+	# ===========================================================================================================
+
 	leftHull = hullOne
 	rightHull = hullTwo
 
-	leftHullForComputations = copy.deepcopy(leftHull)
-	rightHullForComputations = copy.deepcopy(rightHull)
-	#Sort so we can find the leftmost and rightmost points
-	sortByX(leftHullForComputations)
-	sortByX(rightHullForComputations)
+	rightMostLeftHull = 0
+	leftMostRightHull = 0
 
+	# Find the index of the right most point on the left hull
+	for index in range(len(leftHull)):
+		if leftHull[index][0] > leftHull[rightMostLeftHull][0]:
+			rightMostLeftHull = index
+
+	# Find the index of the left most point on the right hull
+	for index in range(len(rightHull)):
+		if rightHull[index][0] < rightHull[leftMostRightHull][0]:
+			leftMostRightHull = index	
 	
-	#Find the leftmost and rightmost points 
-	rightMostLeftHull = leftHullForComputations[-1]
-	leftMostRightHull = rightHullForComputations[0]
-
 	i = rightMostLeftHull
 	j = leftMostRightHull
 
 	# Finds the x value where we will draw a line down the middle for finding y-intercepts
-	yAxis = (i[0] + j[0]) // 2
+	avg = ( leftHull[i][0] + rightHull[j][0] ) / 2
 
 	# We want to find the max and min Y values so we know how long our "Y axis" is.
 	# We can set our mininmum Y value to always be 0.  
 	# Technically, we could just have arbitrary large Y values, but we want to be exact for big input sizes.
 	minY = 0
 	maxY = 0
-	fullHull = leftHull + rightHull
 
+	fullHull = leftHull + rightHull
 	for xPoint in range(len(fullHull)):
 		if fullHull[xPoint][1] > maxY:
 			maxY = fullHull[xPoint][1]
 
-	#Upper tangent
+	# Upper tangent
+	# ==========================================================================================================
+	# INVARIANT - the y-intercept (tangent) of i,j will always be "higher" (visually) on the plot of points than
+	# 	its last iteration in the loop. But mathematically, because of how the axis are arranged,
+	# 	the y-intercept VALUE of i,j will always be lower than it's last loop iteration. 
+	# ==========================================================================================================
 	upperTanFound = False
 	pointSwitched = False
 	while upperTanFound == False:	
 		pointSwitched = False	
 		try:
-			if yint(i, rightHull[(rightHull.index(j)+1) % len(rightHull)], yAxis, minY, maxY)[1] < yint(i, j, yAxis, minY, maxY)[1]:
-				j = rightHull[(rightHull.index(j)+1) % len(rightHull)]
+			if yint(leftHull[i], rightHull[((j+1) % len(rightHull))], avg, minY, maxY)[1] < yint(leftHull[i], rightHull[j], avg, minY, maxY)[1]:
+				j = (j+1) % len(rightHull)
 				pointSwitched = True
 		except(ZeroDivisionError):
-			j = rightHull[(rightHull.index(j)+1) % len(rightHull)]
-			pointSwitched = True
-			break
+			if (rightHull[((j+1) % len(rightHull))][1] < rightHull[j][1]):
+				j = (j+1) % len(rightHull)
+				pointSwitched = True	
 		try:
-			if yint(leftHull[(leftHull.index(i)-1) % len(leftHull)], j, yAxis, minY, maxY)[1] < yint(i, j, yAxis, minY, maxY)[1]:
-				i = leftHull[(leftHull.index(i)-1) % len(leftHull)]
+			if yint(leftHull[((i-1) % len(leftHull))], rightHull[j], avg, minY, maxY)[1] < yint(leftHull[i], rightHull[j], avg, minY, maxY)[1]:
+				i = (i-1) % len(leftHull)
 				pointSwitched = True
 		except(ZeroDivisionError):
-			i = leftHull[(leftHull.index(i)-1) % len(leftHull)]
-			pointSwitched = True
-			break
+			if (rightHull[((j+1) % len(rightHull))][1] < rightHull[j][1]):
+				i = (i-1) % len(leftHull)
+				pointSwitched = True
 		if pointSwitched == False:
 			upperTanFound = True
 
@@ -195,26 +231,32 @@ def merge(hullOne, hullTwo):
 	y = leftMostRightHull
 
 	# Lower tangent. 
+	# ==========================================================================================================
+	# INVARIANT - the y-intercept (tangent) of x,y will always be "lower" (visually) on the plot of points than
+	# 	its last iteration in the loop. But mathematically, because of how the axis are arranged,
+	# 	the y-intercept VALUE of x,y will always be higher than it's last loop iteration. 
+	# ==========================================================================================================
 	lowerTanFound = False
 	pointSwitched = False
 	while lowerTanFound == False:	
 		pointSwitched = False	
 		try:
-			if yint(leftHull[(leftHull.index(x)+1) % len(leftHull)], y, yAxis, minY , maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]:
-				x = leftHull[(leftHull.index(x)+1) % len(leftHull)]
+			if yint(leftHull[((x+1) % len(leftHull))], rightHull[y], avg, minY , maxY)[1] > yint(leftHull[x], rightHull[y], avg, minY, maxY)[1]:
+				x = (x+1) % len(leftHull)
 				pointSwitched = True
 		except(ZeroDivisionError):
-			x = leftHull[(leftHull.index(x)+1) % len(leftHull)]
-			pointSwitched = True
-			break
+			if(leftHull[((x+1) % len(leftHull))][1] < leftHull[x][1]):
+				x = (x+1) % len(leftHull)
+				pointSwitched = True
 		try:
-			if yint(x, rightHull[(rightHull.index(y)-1) % len(rightHull)], yAxis, minY, maxY)[1] > yint(x, y, yAxis, minY, maxY)[1]:
-				y = rightHull[(rightHull.index(y)-1) % len(rightHull)]
+			if yint(leftHull[x], rightHull[((y-1) % len(rightHull))], avg, minY, maxY)[1] > yint(leftHull[x], rightHull[y], avg, minY, maxY)[1]:
+				y = (y-1) % len(rightHull)
 				pointSwitched = True
 		except(ZeroDivisionError):
-			y = rightHull[(rightHull.index(y)-1) % len(rightHull)]
-			pointSwitched = True
-			break
+			if (rightHull[((y-1) % len(rightHull))][1] > rightHull[y][1]):
+				y = (y-1) % len(rightHull)
+				pointSwitched = True
+			
 		if pointSwitched == False:
 			lowerTanFound = True
 
@@ -222,21 +264,35 @@ def merge(hullOne, hullTwo):
 	notInHull = []
 
 	# Remove points not in left half
-	iterator = leftHull[(leftHull.index(i) + 1) % len(leftHull)]
-	while iterator != x:
-		notInHull.append(iterator)
-		iterator = leftHull[(leftHull.index(iterator) + 1) % len(leftHull)]
+	iterator = (i + 1) % len(leftHull)
+	while iterator != x :
+		notInHull.append(leftHull[iterator])
+		iterator = (iterator + 1) % len(leftHull)
 	
 	# Remove points not in right half
-	iterator = rightHull[(rightHull.index(y)+1) % len(rightHull)]
+	iterator = (y+1) % len(rightHull)
 	while iterator != j:
-		notInHull.append(iterator)
-		iterator = rightHull[(rightHull.index(iterator) + 1) % len(rightHull)]
+		notInHull.append(rightHull[iterator])
+		iterator = (iterator + 1) % len(rightHull)
 
 	newHull = leftHull + rightHull
-	for i in newHull:
-		if i not in notInHull:
-			mergedList.append(i)
-	
+	for hullPoint in newHull:
+		if hullPoint not in notInHull:
+			mergedList.append(hullPoint)
 	clockwiseSort(mergedList)
 	return mergedList
+
+# This was for testing purposes, leaving it just in case TA's want to use it to benchmark 
+
+if __name__ == "__main__":
+	points = []
+	for i in range(0, 2560000):
+		tup = ((random.randint(1,3000000)), random.randint(1,3000000))
+		points.append(tup)
+	stopwatch = time.time()
+	naiveHull(points)
+	sys.stderr.write(" ========== Benchmark Time NAIVE: %s sec. ==========\n" %(time.time() - stopwatch))
+
+	# stopwatch = time.time()
+	# computeHull(points)
+	# sys.stderr.write(" ========== Benchmark Time DIVIDE&CONQ: %s sec. ==========\n" %(time.time() - stopwatch))

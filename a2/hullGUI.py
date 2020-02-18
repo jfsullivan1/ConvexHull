@@ -53,6 +53,11 @@ ram = PhotoImage(file="ram-sm.gif")
 	#if i % 20 == 0:
 		#points.append((400, i))
 		#drawPoint(w, 400, i)
+#points.append([[160, 332], [124, 395], [56, 425]])
+# points.append([(160, 332) (124, 395), (56, 425), (156, 142),  (188, 483), (182, 503), (184, 383), (186, 341), (236, 184)])
+# for i in range(len(points[0])):
+# 	print(f"pointss: {points[0][i][0]}")
+# 	drawPoint(w, points[0][i][0], points[0][i][1])
 
 w.pack()
 w.bind('<Button-1>', addPoint)
