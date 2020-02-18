@@ -1,3 +1,7 @@
+# John Sullivan & Shane Wallerick
+# CONVEX HULL Assignment 03
+# CSC440
+
 import math
 import sys
 import copy
@@ -7,7 +11,6 @@ import hypothesis.strategies as st
 import random
 import time
 EPSILON = sys.float_info.epsilon
-
 
 def yint(p1, p2, x, y3, y4):
 	"""
@@ -25,7 +28,6 @@ def yint(p1, p2, x, y3, y4):
 		float((x1 - x2)*(y3 - y4) - (y1 - y2)*(x3-x4))
 	return px, py
 
-
 def triangleArea(a, b, c):
 	"""
 	Given three points a,b,c, computes and returns the area defined by the
@@ -36,14 +38,12 @@ def triangleArea(a, b, c):
 	return (a[0]*b[1] - a[1]*b[0] + a[1]*c[0]
 			- a[0]*c[1] + b[0]*c[1] - c[0]*b[1]) / 2.0
 
-
 def cw(a, b, c):
 	"""
 	Given three points a,b,c, returns True if and only if  a,b,c represents a
 	clockwise sequence (subject to floating-point precision)
 	"""
 	return triangleArea(a, b, c) < -EPSILON
-
 
 def ccw(a, b, c):
 	"""
@@ -52,14 +52,12 @@ def ccw(a, b, c):
 	"""
 	return triangleArea(a, b, c) > EPSILON
 
-
 def collinear(a, b, c):
 	"""
 	Given three points a,b,c, returns True if and only if  a,b,c are collinear
 	(subject to floating-point precision)
 	"""
 	return abs(triangleArea(a, b, c)) <= EPSILON
-
 
 def clockwiseSort(points):
 	"""
@@ -73,16 +71,14 @@ def clockwiseSort(points):
 	angle = lambda p:  ((math.atan2(p[1] - yavg, p[0] - xavg) + 2*math.pi) % (2*math.pi))
 	points.sort(key=angle)
 
-
 def computeHull(points):
 	"""
 	Computation of the convex hull with a divide-and-conquer algorithm
 	"""
 	hull = getHull(points)
-	#print(checkHull(hull, points))
 	return hull
 	
-
+# Recursive function finding the convex hull (divide and conquer)
 def getHull(points):
 	newpoints = copy.deepcopy(points)
 	if (len(newpoints) <= 3):
@@ -99,7 +95,6 @@ def getHull(points):
 			clockwiseSort(newpointsLeft)
 			return newpointsLeft
 		return merge(getHull(newpointsLeft), getHull(newpointsRight))
-
 
 def naiveHull(points):
 	"""
@@ -139,7 +134,6 @@ def naiveHull(points):
 		if count == 0:
 			notAllConvexAngles = False
 	return points
-
 
 def sortByX(points):
 	points.sort()
